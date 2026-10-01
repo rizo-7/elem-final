@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elementary English Exam</title>
+  <style>
+    :root {
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --bg: #F3F4F6;
+      --card-bg: #FFFFFF;
+      --text: #1F2937;
+      --text-muted: #6B7280;
+      --border: #E5E7EB;
+      --correct: #10B981;
+      --correct-bg: #D1FAE5;
+      --incorrect: #EF4444;
+      --incorrect-bg: #FEE2E2;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 680px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header & Progress Bar */
+    .header {
+      margin-bottom: 20px;
+    }
+
+    .meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background-color: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background-color: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    /* Screen Management */
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    /* Question Elements */
+    .section-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .instruction {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      line-height: 1.4;
+    }
+
+    .prompt-box {
+      background-color: #F9FAFB;
+      border: 1px solid var(--border);
+      padding: 16px;
+      border-radius: var(--radius);
+      font-size: 1.05rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    /* Form Controls */
+    .input-field {
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 16px;
+      font-size: 1.05rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      outline: none;
+      margin-bottom: 20px;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+      background-color: #FFFFFF;
+    }
+
+    .input-field:focus {
+      border-color: var(--primary);
+    }
+
+    .options-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .option-btn {
+      width: 100%;
+      min-height: 52px;
+      padding: 12px 16px;
+      font-size: 1rem;
+      font-weight: 500;
+      text-align: left;
+      background-color: #FFFFFF;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .option-btn:hover {
+      border-color: var(--primary);
+      background-color: #EEF2FF;
+    }
+
+    .btn-submit {
+      width: 100%;
+      min-height: 52px;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-submit:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Feedback Animations */
+    .correct-anim {
+      animation: flashGreen 0.5s ease forwards;
+    }
+
+    .incorrect-anim {
+      animation: flashRed 0.5s ease forwards;
+    }
+
+    @keyframes flashGreen {
+      0% { background-color: #FFFFFF; }
+      50% { background-color: var(--correct-bg); border-color: var(--correct); }
+      100% { background-color: #FFFFFF; }
+    }
+
+    @keyframes flashRed {
+      0% { background-color: #FFFFFF; }
+      50% { background-color: var(--incorrect-bg); border-color: var(--incorrect); }
+      100% { background-color: #FFFFFF; }
+    }
+
+    /* Results Screen */
+    .results-card {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .score-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: #EEF2FF;
+      color: var(--primary);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 20px;
+      border: 4px solid var(--primary);
+    }
+
+    .score-circle .number {
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .score-circle .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-top: 4px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .stat-item {
+      background-color: #F9FAFB;
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    .stat-val {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .stat-lbl {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    /* Start Screen */
+    .welcome-card {
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .welcome-card h1 {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+    }
+
+    .welcome-card p {
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="quizContainer">
+    
+    <!-- Welcome Screen -->
+    <div id="startScreen" class="screen active">
+      <div class="welcome-card">
+        <h1>Elementary English Final Exam</h1>
+        <p>Complete all 65 questions across Past Simple, Future forms, Present Perfect, Vocabulary, and Word Classes.</p>
+        <button class="btn-submit" id="startBtn">Start Full Exam</button>
+      </div>
+    </div>
+
+    <!-- Active Quiz Screen -->
+    <div id="quizScreen" class="screen">
+      <div class="header">
+        <div class="meta-bar">
+          <span id="stepCounter">Question 1 of 65</span>
+          <span id="timerDisplay">00:00</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressBar"></div>
+        </div>
+      </div>
+
+      <div class="section-title" id="sectionTitle">SECTION 1</div>
+      <div class="instruction" id="instruction">Instruction</div>
+      <div class="prompt-box" id="promptBox">Prompt text</div>
+
+      <div id="interactionArea"></div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="resultsScreen" class="screen">
+      <div class="results-card">
+        <h2>Exam Completed!</h2>
+        <br>
+        <div class="score-circle">
+          <div class="number" id="percentageVal">0%</div>
+          <div class="label">Score</div>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-item">
+            <div class="stat-val" id="rawScoreVal">0 / 65</div>
+            <div class="stat-lbl">Correct Answers</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-val" id="timeTakenVal">0s</div>
+            <div class="stat-lbl">Time Elapsed</div>
+          </div>
+        </div>
+
+        <button class="btn-submit" id="restartBtn">Retake Exam</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const questions = [
+      // --- SECTION 1: PAST SIMPLE ---
+      { section: "Section 1: Past Simple (Part A)", instruction: "Write the correct Past simple form of the verb in brackets.", prompt: "1) She ___________ (hurry) to catch the morning school bus.", type: "input", answers: ["hurried"] },
+      { section: "Section 1: Past Simple (Part A)", instruction: "Write the correct Past simple form of the verb in brackets.", prompt: "2) We ___________ (play) board games with our cousins.", type: "input", answers: ["played"] },
+      { section: "Section 1: Past Simple (Part A)", instruction: "Write the correct Past simple form of the verb in brackets.", prompt: "3) He ___________ (plan) a fun birthday party last night.", type: "input", answers: ["planned"] },
+      { section: "Section 1: Past Simple (Part A)", instruction: "Write the correct Past simple form of the verb in brackets.", prompt: "4) I ___________ (live) near the beach for two years.", type: "input", answers: ["lived"] },
+      { section: "Section 1: Past Simple (Part A)", instruction: "Write the correct Past simple form of the verb in brackets.", prompt: "5) The children ___________ (chat) about the cartoon on the break.", type: "input", answers: ["chatted"] },
+
+      { section: "Section 1: Past Simple (Part B)", instruction: "Complete using was/wasn't, were/weren't, could, or couldn't.", prompt: "1) — ___________ she ride a bicycle when she was five?<br>— Yes, she ___________.", type: "input", answers: ["could / could", "could/could", "could, could", "could"] },
+      { section: "Section 1: Past Simple (Part B)", instruction: "Complete using was/wasn't, were/weren't, could, or couldn't.", prompt: "2) — Where ___________ you on Saturday?<br>— I ___________ at the zoo.", type: "input", answers: ["were / was", "were/was", "were, was", "were was"] },
+      { section: "Section 1: Past Simple (Part B)", instruction: "Complete using was/wasn't, were/weren't, could, or couldn't.", prompt: "3) — ___________ he at football practice yesterday?<br>— No, he ___________.", type: "input", answers: ["was / wasn't", "was/wasn't", "was, wasn't", "was wasn't"] },
+      { section: "Section 1: Past Simple (Part B)", instruction: "Complete using was/wasn't, were/weren't, could, or couldn't.", prompt: "4) — The puppies ___________ tired after playing in the park.<br>— Yes, it ___________ a long walk.", type: "input", answers: ["were / was", "were/was", "were, was", "were was"] },
+      { section: "Section 1: Past Simple (Part B)", instruction: "Complete using was/wasn't, were/weren't, could, or couldn't.", prompt: "5) — ___________ she join the dance team yesterday?<br>— No, she ___________.", type: "input", answers: ["could / couldn't", "could/couldn't", "could, couldn't"] },
+
+      { section: "Section 1: Past Simple (Part C)", instruction: "Rewrite into a negative form or question in the Past simple.", prompt: "1) You texted me last night. ➔ Question: Did ___________________?", type: "input", answers: ["you text me last night", "you text me last night?"] },
+      { section: "Section 1: Past Simple (Part C)", instruction: "Rewrite into a negative form or question in the Past simple.", prompt: "2) Tom cleaned his bedroom. ➔ Negative: Tom ___________________.", type: "input", answers: ["didn't clean his bedroom", "did not clean his bedroom"] },
+      { section: "Section 1: Past Simple (Part C)", instruction: "Rewrite into a negative form or question in the Past simple.", prompt: "3) They walked to the shop. ➔ Question: Did ___________________?", type: "input", answers: ["they walk to the shop", "they walk to the shop?"] },
+      { section: "Section 1: Past Simple (Part C)", instruction: "Rewrite into a negative form or question in the Past simple.", prompt: "4) She painted a picture yesterday. ➔ Negative: She ___________________.", type: "input", answers: ["didn't paint a picture yesterday", "did not paint a picture yesterday"] },
+      { section: "Section 1: Past Simple (Part C)", instruction: "Rewrite into a negative form or question in the Past simple.", prompt: "5) He liked the funny story. ➔ Negative: He ___________________.", type: "input", answers: ["didn't like the funny story", "did not like the funny story"] },
+
+      { section: "Section 1: Past Simple (Part D)", instruction: "Choose the correct past simple answer.", prompt: "1) I ___________ breakfast at home this morning.", type: "choice", options: ["A) didn't eat", "B) don't eat", "C) not ate"], answers: ["A) didn't eat", "didn't eat", "a"] },
+      { section: "Section 1: Past Simple (Part D)", instruction: "Choose the correct past simple answer.", prompt: "2) She ___________ a postcard to her grandmother.", type: "choice", options: ["A) writed", "B) wrote", "C) writing"], answers: ["B) wrote", "wrote", "b"] },
+      { section: "Section 1: Past Simple (Part D)", instruction: "Choose the correct past simple answer.", prompt: "3) He ___________ movies yesterday evening.", type: "choice", options: ["A) didn't watch", "B) didn't watched", "C) not watch"], answers: ["A) didn't watch", "didn't watch", "a"] },
+      { section: "Section 1: Past Simple (Part D)", instruction: "Choose the correct past simple answer.", prompt: "4) They ___________ a cool toy last week.", type: "choice", options: ["A) buy", "B) bought", "C) buying"], answers: ["B) bought", "bought", "b"] },
+      { section: "Section 1: Past Simple (Part D)", instruction: "Choose the correct past simple answer.", prompt: "5) She ___________ her favorite doll yesterday afternoon.", type: "choice", options: ["A) lose", "B) lost", "C) losed"], answers: ["B) lost", "lost", "b"] },
+      { section: "Section 1: Past Simple (Part D)", instruction: "Choose the correct past simple answer.", prompt: "6) We ___________ to Spain on vacation last year.", type: "choice", options: ["A) go", "B) gone", "C) went"], answers: ["C) went", "went", "c"] },
+
+      // --- SECTION 2: GOING TO ---
+      { section: "Section 2: Future ('be going to')", instruction: "Fill in using the correct form of 'be going to'.", prompt: "1) (not study) ➔ I ___________________ this weekend. (-)", type: "input", answers: ["am not going to study", "'m not going to study"] },
+      { section: "Section 2: Future ('be going to')", instruction: "Fill in using the correct form of 'be going to'.", prompt: "2) (cook) ➔ My mother ___________________ lunch. (+)", type: "input", answers: ["is going to cook", "'s going to cook"] },
+      { section: "Section 2: Future ('be going to')", instruction: "Fill in using the correct form of 'be going to'.", prompt: "3) (travel) ➔ Children ___________________ to London. (+)", type: "input", answers: ["are going to travel"] },
+      { section: "Section 2: Future ('be going to')", instruction: "Fill in using the correct form of 'be going to'.", prompt: "4) (not buy) ➔ She ___________________ a jacket. (-)", type: "input", answers: ["is not going to buy", "isn't going to buy", "'s not going to buy"] },
+      { section: "Section 2: Future ('be going to')", instruction: "Fill in using the correct form of 'be going to'.", prompt: "5) (play) ➔ He ___________________ basketball. (+)", type: "input", answers: ["is going to play", "'s going to play"] },
+
+      // --- SECTION 3: WILL ---
+      { section: "Section 3: Future ('will')", instruction: "Put the jumbled words into correct, full sentences.", prompt: "1) open / next week / The park / will", type: "input", answers: ["the park will open next week", "the park will open next week."] },
+      { section: "Section 3: Future ('will')", instruction: "Put the jumbled words into correct, full sentences.", prompt: "2) school / games / We / will / play / after", type: "input", answers: ["we will play games after school", "we will play games after school."] },
+      { section: "Section 3: Future ('will')", instruction: "Put the jumbled words into correct, full sentences.", prompt: "3) on Saturday / at the park / be / won't / We", type: "input", answers: ["we won't be at the park on saturday", "we won't be at the park on saturday."] },
+      { section: "Section 3: Future ('will')", instruction: "Put the jumbled words into correct, full sentences.", prompt: "4) next month / finish / They / will / the project", type: "input", answers: ["they will finish the project next month", "they will finish the project next month."] },
+      { section: "Section 3: Future ('will')", instruction: "Put the jumbled words into correct, full sentences.", prompt: "5) Her brother / homework / will / with / her / help / her", type: "input", answers: ["her brother will help her with her homework", "her brother will help her with her homework."] },
+
+      // --- SECTION 4: PRESENT PERFECT ---
+      { section: "Section 4: Present Perfect Tense", instruction: "Complete using Present Perfect with just, already, or yet.", prompt: "1) She ___________________ (already / finish) her project.", type: "input", answers: ["has already finished", "'s already finished"] },
+      { section: "Section 4: Present Perfect Tense", instruction: "Complete using Present Perfect with just, already, or yet.", prompt: "2) We ___________________ (not / start) the game yet.", type: "input", answers: ["have not started", "haven't started"] },
+      { section: "Section 4: Present Perfect Tense", instruction: "Complete using Present Perfect with just, already, or yet.", prompt: "3) They ___________________ (just / arrive) at the playground.", type: "input", answers: ["have just arrived", "'ve just arrived"] },
+      { section: "Section 4: Present Perfect Tense", instruction: "Complete using Present Perfect with just, already, or yet.", prompt: "4) ___________________ you ___________________ (ever / try) pineapple pizza?", type: "input", answers: ["have you ever tried", "have / ever tried"] },
+      { section: "Section 4: Present Perfect Tense", instruction: "Complete using Present Perfect with just, already, or yet.", prompt: "5) I ___________________ (not / see) that cartoon movie yet.", type: "input", answers: ["have not seen", "haven't seen", "'ve not seen"] },
+
+      // --- SECTION 5: VOCABULARY ---
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "1) You must put on a ____________ before riding your bike.", type: "choice", options: ["goggles", "helmet"], answers: ["helmet"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "2) My computer froze because I didn't ____________ my photos.", type: "choice", options: ["back up", "turn up"], answers: ["back up"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "3) The cat didn't share its toy; it was very ____________.", type: "choice", options: ["lazy", "rude"], answers: ["lazy"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "4) The bird flapped its ____________ and flew away.", type: "choice", options: ["paw", "wing"], answers: ["wing"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "5) The acrobats decided to ____________ off the high tower.", type: "choice", options: ["abseil", "bungee-jump"], answers: ["abseil", "bungee-jump"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "6) We keep our laundry detergent in the ____________ room.", type: "choice", options: ["utility", "living"], answers: ["utility"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "7) The afternoon was ____________, so we stayed inside to read.", type: "choice", options: ["stormy", "sunny"], answers: ["stormy"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "8) Please put your dirty cups in the ____________.", type: "choice", options: ["sink", "rug"], answers: ["sink"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "9) She wears a coat when it's freezing — she is very ____________.", type: "choice", options: ["selfish", "sensible"], answers: ["sensible"] },
+      { section: "Section 5: Vocabulary", instruction: "Select the best option from the bold pair.", prompt: "10) He wants to ____________ through the big forest.", type: "choice", options: ["kite-surf", "trek"], answers: ["trek"] },
+
+      // --- SECTION 6: ACTION VERBS ---
+      { section: "Section 6: Action Verbs", instruction: "Choose the correct action verb.", prompt: "1) I usually ____________ swimming on hot days.", type: "choice", options: ["play", "go", "do"], answers: ["go"] },
+      { section: "Section 6: Action Verbs", instruction: "Choose the correct action verb.", prompt: "2) My classmate doesn't ____________ judo.", type: "choice", options: ["play", "go", "do"], answers: ["do"] },
+      { section: "Section 6: Action Verbs", instruction: "Choose the correct action verb.", prompt: "3) The students ____________ soccer after class.", type: "choice", options: ["play", "go", "do"], answers: ["play"] },
+      { section: "Section 6: Action Verbs", instruction: "Choose the correct action verb.", prompt: "4) We ____________ cycling along the park path.", type: "choice", options: ["play", "go", "do"], answers: ["go"] },
+      { section: "Section 6: Action Verbs", instruction: "Choose the correct action verb.", prompt: "5) She wants to ____________ gymnastics in gym class.", type: "choice", options: ["play", "go", "do"], answers: ["do"] },
+
+      // --- SECTION 7: WORD CLASSES ---
+      { section: "Section 7: Word Classes (Nouns)", instruction: "Form the noun derived from the word given.", prompt: "1) Happy ➔ ___________________", type: "input", answers: ["happiness"] },
+      { section: "Section 7: Word Classes (Nouns)", instruction: "Form the noun derived from the word given.", prompt: "2) Argue ➔ ___________________", type: "input", answers: ["argument"] },
+      { section: "Section 7: Word Classes (Nouns)", instruction: "Form the noun derived from the word given.", prompt: "3) Describe ➔ ___________________", type: "input", answers: ["description"] },
+      { section: "Section 7: Word Classes (Nouns)", instruction: "Form the noun derived from the word given.", prompt: "4) Achieve ➔ ___________________", type: "input", answers: ["achievement"] },
+      { section: "Section 7: Word Classes (Nouns)", instruction: "Form the noun derived from the word given.", prompt: "5) Educate ➔ ___________________", type: "input", answers: ["education"] },
+
+      { section: "Section 7: Word Classes (Adverbs/Adjectives)", instruction: "Choose the correct word.", prompt: "1) The cheetah is very ____________.", type: "choice", options: ["fast", "fastly"], answers: ["fast"] },
+      { section: "Section 7: Word Classes (Adverbs/Adjectives)", instruction: "Choose the correct word.", prompt: "2) The library is ____________ right now.", type: "choice", options: ["quiet", "quietly"], answers: ["quiet"] },
+      { section: "Section 7: Word Classes (Adverbs/Adjectives)", instruction: "Choose the correct word.", prompt: "3) The students worked ____________ on their drawings.", type: "choice", options: ["hard", "hardly"], answers: ["hard"] },
+      { section: "Section 7: Word Classes (Adverbs/Adjectives)", instruction: "Choose the correct word.", prompt: "4) The snail moves ____________.", type: "choice", options: ["slow", "slowly"], answers: ["slowly"] },
+      { section: "Section 7: Word Classes (Adverbs/Adjectives)", instruction: "Choose the correct word.", prompt: "5) She finished the puzzle ____________.", type: "choice", options: ["quick", "quickly"], answers: ["quickly"] },
+
+      // --- SECTION 8: CONJUNCTIONS ---
+      { section: "Section 8: Conjunctions", instruction: "Select the correct linking word.", prompt: "1) It was very warm, ____________ we opened the window.", type: "choice", options: ["although", "because", "so"], answers: ["so"] },
+      { section: "Section 8: Conjunctions", instruction: "Select the correct linking word.", prompt: "2) ____________ he felt sleepy, he stayed up to read.", type: "choice", options: ["Although", "Because", "So"], answers: ["Although"] },
+      { section: "Section 8: Conjunctions", instruction: "Select the correct linking word.", prompt: "3) She practiced every day, ____________ she won the contest.", type: "choice", options: ["although", "because", "so"], answers: ["so"] },
+      { section: "Section 8: Conjunctions", instruction: "Select the correct linking word.", prompt: "4) She was tired, ____________ she went to bed early.", type: "choice", options: ["although", "because", "so"], answers: ["so"] },
+      { section: "Section 8: Conjunctions", instruction: "Select the correct linking word.", prompt: "5) I put on my raincoat ____________ it was pouring outside.", type: "choice", options: ["although", "because", "so"], answers: ["because"] }
+    ];
+
+    // State Variables
+    let currentStep = 0;
+    let score = 0;
+    let isLocked = false;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+
+    // DOM Elements
+    const startScreen = document.getElementById("startScreen");
+    const quizScreen = document.getElementById("quizScreen");
+    const resultsScreen = document.getElementById("resultsScreen");
+    const startBtn = document.getElementById("startBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    const stepCounter = document.getElementById("stepCounter");
+    const timerDisplay = document.getElementById("timerDisplay");
+    const progressBar = document.getElementById("progressBar");
+    const sectionTitle = document.getElementById("sectionTitle");
+    const instruction = document.getElementById("instruction");
+    const promptBox = document.getElementById("promptBox");
+    const interactionArea = document.getElementById("interactionArea");
+    const quizContainer = document.getElementById("quizContainer");
+
+    const percentageVal = document.getElementById("percentageVal");
+    const rawScoreVal = document.getElementById("rawScoreVal");
+    const timeTakenVal = document.getElementById("timeTakenVal");
+
+    // Utilities
+    function normalizeStr(str) {
+      if (!str) return "";
+      return str
+        .toLowerCase()
+        .replace(/['’]/g, "'")
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function formatTime(sec) {
+      const m = Math.floor(sec / 60).toString().padStart(2, '0');
+      const s = (sec % 60).toString().padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function startTimer() {
+      secondsElapsed = 0;
+      timerDisplay.textContent = "00:00";
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        timerDisplay.textContent = formatTime(secondsElapsed);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+    }
+
+    // App Mechanics
+    function initQuiz() {
+      currentStep = 0;
+      score = 0;
+      isLocked = false;
+      
+      startScreen.classList.remove("active");
+      resultsScreen.classList.remove("active");
+      quizScreen.classList.add("active");
+
+      startTimer();
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      isLocked = false;
+      const q = questions[currentStep];
+
+      stepCounter.textContent = `Question ${currentStep + 1} of ${questions.length}`;
+      const progressPercent = ((currentStep) / questions.length) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+
+      sectionTitle.textContent = q.section;
+      instruction.textContent = q.instruction;
+      promptBox.innerHTML = q.prompt;
+
+      interactionArea.innerHTML = "";
+
+      if (q.type === "input") {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "input-field";
+        input.placeholder = "Type your answer here...";
+        
+        input.setAttribute("autocomplete", "off");
+        input.setAttribute("autocorrect", "off");
+        input.setAttribute("autocapitalize", "none");
+        input.setAttribute("spellcheck", "false");
+
+        const submitBtn = document.createElement("button");
+        submitBtn.className = "btn-submit";
+        submitBtn.textContent = "Submit Answer";
+
+        interactionArea.appendChild(input);
+        interactionArea.appendChild(submitBtn);
+
+        submitBtn.addEventListener("click", () => {
+          handleAnswerSubmit(input.value);
+        });
+
+        input.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            handleAnswerSubmit(input.value);
+          }
+        });
+
+        setTimeout(() => input.focus(), 100);
+
+      } else if (q.type === "choice") {
+        const grid = document.createElement("div");
+        grid.className = "options-grid";
+
+        q.options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "option-btn";
+          btn.textContent = opt;
+          btn.addEventListener("click", () => {
+            handleAnswerSubmit(opt);
+          });
+          grid.appendChild(btn);
+        });
+
+        interactionArea.appendChild(grid);
+      }
+    }
+
+    function handleAnswerSubmit(userProvidedVal) {
+      if (isLocked) return;
+      isLocked = true;
+
+      const q = questions[currentStep];
+      const normalizedInput = normalizeStr(userProvidedVal);
+      
+      const isCorrect = q.answers.some(ans => normalizeStr(ans) === normalizedInput);
+
+      if (isCorrect) {
+        score++;
+      }
+
+      quizContainer.classList.remove("correct-anim", "incorrect-anim");
+      void quizContainer.offsetWidth;
+      quizContainer.classList.add(isCorrect ? "correct-anim" : "incorrect-anim");
+
+      setTimeout(() => {
+        quizContainer.classList.remove("correct-anim", "incorrect-anim");
+        currentStep++;
+
+        if (currentStep < questions.length) {
+          renderQuestion();
+        } else {
+          showResults();
+        }
+      }, 500);
+    }
+
+    function showResults() {
+      stopTimer();
+      progressBar.style.width = "100%";
+
+      quizScreen.classList.remove("active");
+      resultsScreen.classList.add("active");
+
+      const percentage = Math.round((score / questions.length) * 100);
+      percentageVal.textContent = `${percentage}%`;
+      rawScoreVal.textContent = `${score} / ${questions.length}`;
+      timeTakenVal.textContent = `${secondsElapsed}s`;
+    }
+
+    // Global Event Listeners
+    startBtn.addEventListener("click", initQuiz);
+    restartBtn.addEventListener("click", initQuiz);
+  </script>
+</body>
+</html>
